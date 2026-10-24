@@ -65,6 +65,54 @@ object Icons {
         private var _ArrowBack: ImageVector? = null
     }
 
+    // https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/add.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,0,0,50
+    val Add: ImageVector
+        get() {
+            if (_Add != null) {
+                return _Add!!
+            }
+            _Add =
+                ImageVector.Builder(
+                    name = "add",
+                    defaultWidth = 24.dp,
+                    defaultHeight = 24.dp,
+                    viewportWidth = 24f,
+                    viewportHeight = 24f,
+                )
+                    .apply {
+                        path(
+                            fill = SolidColor(Color.Black),
+                            fillAlpha = 1f,
+                            stroke = null,
+                            strokeAlpha = 1f,
+                            strokeLineWidth = 1f,
+                            strokeLineCap = StrokeCap.Butt,
+                            strokeLineJoin = StrokeJoin.Bevel,
+                            strokeLineMiter = 1f,
+                            pathFillType = PathFillType.NonZero,
+                        ) {
+                            moveTo(11f, 13f)
+                            horizontalLineTo(5f)
+                            verticalLineToRelative(-2f)
+                            horizontalLineToRelative(6f)
+                            verticalLineTo(5f)
+                            horizontalLineToRelative(2f)
+                            verticalLineToRelative(6f)
+                            horizontalLineToRelative(6f)
+                            verticalLineToRelative(2f)
+                            horizontalLineToRelative(-6f)
+                            verticalLineToRelative(6f)
+                            horizontalLineToRelative(-2f)
+                            verticalLineToRelative(-6f)
+                            close()
+                        }
+                    }
+                    .build()
+            return _Add!!
+        }
+
+    private var _Add: ImageVector? = null
+
     // https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/check.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,0,0,50
     val Check: ImageVector
         get() {
@@ -154,6 +202,155 @@ object Icons {
         }
 
     private var _Close: ImageVector? = null
+
+    // https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/delete.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,0,0,50
+    val Delete: ImageVector
+        get() {
+            if (_Delete != null) {
+                return _Delete!!
+            }
+            _Delete =
+                ImageVector.Builder(
+                    name = "delete",
+                    defaultWidth = 24.dp,
+                    defaultHeight = 24.dp,
+                    viewportWidth = 24f,
+                    viewportHeight = 24f,
+                )
+                    .apply {
+                        path(
+                            fill = SolidColor(Color.Black),
+                            fillAlpha = 1f,
+                            stroke = null,
+                            strokeAlpha = 1f,
+                            strokeLineWidth = 1f,
+                            strokeLineCap = StrokeCap.Butt,
+                            strokeLineJoin = StrokeJoin.Bevel,
+                            strokeLineMiter = 1f,
+                            pathFillType = PathFillType.NonZero,
+                        ) {
+                            moveTo(7f, 21f)
+                            quadToRelative(-0.82f, 0f, -1.41f, -0.59f)
+                            reflectiveQuadTo(5f, 19f)
+                            verticalLineTo(6f)
+                            horizontalLineTo(4f)
+                            verticalLineTo(4f)
+                            horizontalLineToRelative(5f)
+                            verticalLineTo(3f)
+                            horizontalLineToRelative(6f)
+                            verticalLineToRelative(1f)
+                            horizontalLineToRelative(5f)
+                            verticalLineToRelative(2f)
+                            horizontalLineToRelative(-1f)
+                            verticalLineToRelative(13f)
+                            quadToRelative(0f, 0.82f, -0.59f, 1.41f)
+                            reflectiveQuadTo(17f, 21f)
+                            horizontalLineTo(7f)
+                            close()
+                            moveTo(17f, 6f)
+                            horizontalLineTo(7f)
+                            verticalLineToRelative(13f)
+                            horizontalLineToRelative(10f)
+                            verticalLineTo(6f)
+                            close()
+                            moveTo(9f, 17f)
+                            horizontalLineToRelative(2f)
+                            verticalLineTo(8f)
+                            horizontalLineTo(9f)
+                            verticalLineToRelative(9f)
+                            close()
+                            moveTo(13f, 17f)
+                            horizontalLineToRelative(2f)
+                            verticalLineTo(8f)
+                            horizontalLineToRelative(-2f)
+                            verticalLineToRelative(9f)
+                            close()
+                        }
+                    }
+                    .build()
+            return _Delete!!
+        }
+
+    private var _Delete: ImageVector? = null
+
+    // https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/play_arrow.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,1,0,50
+    val PlayArrow: ImageVector
+        get() {
+            if (_PlayArrow != null) {
+                return _PlayArrow!!
+            }
+            _PlayArrow =
+                ImageVector.Builder(
+                    name = "play_arrow",
+                    defaultWidth = 24.dp,
+                    defaultHeight = 24.dp,
+                    viewportWidth = 24f,
+                    viewportHeight = 24f,
+                )
+                    .apply {
+                        path(
+                            fill = SolidColor(Color.Black),
+                            fillAlpha = 1f,
+                            stroke = null,
+                            strokeAlpha = 1f,
+                            strokeLineWidth = 1f,
+                            strokeLineCap = StrokeCap.Butt,
+                            strokeLineJoin = StrokeJoin.Bevel,
+                            strokeLineMiter = 1f,
+                            pathFillType = PathFillType.NonZero,
+                        ) {
+                            moveTo(8f, 19f)
+                            verticalLineTo(5f)
+                            lineToRelative(11f, 7f)
+                            lineToRelative(-11f, 7f)
+                            close()
+                        }
+                    }
+                    .build()
+            return _PlayArrow!!
+        }
+
+    private var _PlayArrow: ImageVector? = null
+
+    // https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/stop.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,1,0,50
+    val Stop: ImageVector
+        get() {
+            if (_Stop != null) {
+                return _Stop!!
+            }
+            _Stop =
+                ImageVector.Builder(
+                    name = "stop",
+                    defaultWidth = 24.dp,
+                    defaultHeight = 24.dp,
+                    viewportWidth = 24f,
+                    viewportHeight = 24f,
+                )
+                    .apply {
+                        path(
+                            fill = SolidColor(Color.Black),
+                            fillAlpha = 1f,
+                            stroke = null,
+                            strokeAlpha = 1f,
+                            strokeLineWidth = 1f,
+                            strokeLineCap = StrokeCap.Butt,
+                            strokeLineJoin = StrokeJoin.Bevel,
+                            strokeLineMiter = 1f,
+                            pathFillType = PathFillType.NonZero,
+                        ) {
+                            moveTo(6f, 18f)
+                            verticalLineTo(6f)
+                            horizontalLineToRelative(12f)
+                            verticalLineToRelative(12f)
+                            horizontalLineTo(6f)
+                            close()
+                        }
+                    }
+                    .build()
+            return _Stop!!
+        }
+
+    private var _Stop: ImageVector? = null
 
     // https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/visibility.kt?var=opsz,wght,FILL,GRAD,ROND@24,400,0,0,50
     val Visibility: ImageVector

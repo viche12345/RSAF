@@ -8,14 +8,22 @@ package com.chiller3.rsaf
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.os.Build
 import com.chiller3.rsaf.rclone.KeepAliveService
+import com.chiller3.rsaf.settings.SyncJobsActivity
+import com.chiller3.rsaf.sync.SyncJob
+import com.chiller3.rsaf.sync.SyncJobResult
+import com.chiller3.rsaf.sync.SyncProgress
+import com.chiller3.rsaf.sync.describe
 
 class Notifications(private val context: Context) {
     companion object {
         private const val CHANNEL_ID_KEEP_ALIVE = "keep_alive"
         private const val CHANNEL_ID_FAILURE = "failure"
+        private const val CHANNEL_ID_SYNC_PROGRESS = "sync_progress"
+        private const val CHANNEL_ID_SYNC_RESULT = "sync_result"
 
         private val LEGACY_CHANNEL_IDS = arrayOf(
             "open_files",
@@ -47,6 +55,24 @@ class Notifications(private val context: Context) {
         description = context.getString(R.string.notification_channel_failure_desc)
     }
 
+    /** Create a low priority notification channel for sync job progress. */
+    private fun createSyncProgressChannel() = NotificationChannel(
+        CHANNEL_ID_SYNC_PROGRESS,
+        context.getString(R.string.notification_channel_sync_progress_name),
+        NotificationManager.IMPORTANCE_LOW,
+    ).apply {
+        description = context.getString(R.string.notification_channel_sync_progress_desc)
+    }
+
+    /** Create a default priority notification channel for successful sync job results. */
+    private fun createSyncResultChannel() = NotificationChannel(
+        CHANNEL_ID_SYNC_RESULT,
+        context.getString(R.string.notification_channel_sync_result_name),
+        NotificationManager.IMPORTANCE_DEFAULT,
+    ).apply {
+        description = context.getString(R.string.notification_channel_sync_result_desc)
+    }
+
     /**
      * Ensure notification channels are up-to-date.
      *
@@ -56,6 +82,8 @@ class Notifications(private val context: Context) {
         notificationManager.createNotificationChannels(listOf(
             createKeepAliveChannel(),
             createFailureAlertsChannel(),
+            createSyncProgressChannel(),
+            createSyncResultChannel(),
         ))
         LEGACY_CHANNEL_IDS.forEach { notificationManager.deleteNotificationChannel(it) }
     }
@@ -114,6 +142,85 @@ class Notifications(private val context: Context) {
 
             build()
         }
+
+    private fun createSyncJobsPendingIntent(): PendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        SyncJobsActivity.createIntent(context),
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+
+    fun createSyncProgressNotification(
+        job: SyncJob,
+        progress: SyncProgress,
+        cancelIntent: PendingIntent,
+    ): Notification = Notification.Builder(context, CHANNEL_ID_SYNC_PROGRESS).run {
+        val titleResId = if (progress.dryRun) {
+            R.string.notification_sync_dry_run_title
+        } else {
+            R.string.notification_sync_running_title
+        }
+        val text = progress.describe(context)
+
+        setContentTitle(context.getString(titleResId, job.name))
+        setContentText(text)
+        style = Notification.BigTextStyle().bigText(text)
+        setSmallIcon(R.drawable.ic_notifications)
+        setOngoing(true)
+        setOnlyAlertOnce(true)
+        setContentIntent(createSyncJobsPendingIntent())
+
+        val fraction = progress.fraction
+        if (fraction != null) {
+            setProgress(1000, (fraction * 1000).toInt(), false)
+        } else {
+            setProgress(0, 0, true)
+        }
+
+        addAction(Notification.Action.Builder(
+            null,
+            context.getString(android.R.string.cancel),
+            cancelIntent,
+        ).build())
+
+        // Inhibit 10-second delay when showing persistent notification
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
+
+        build()
+    }
+
+    fun notifySyncFinished(job: SyncJob, result: SyncJobResult) {
+        val notificationId = prefs.nextNotificationId
+        val channel = if (result.success) CHANNEL_ID_SYNC_RESULT else CHANNEL_ID_FAILURE
+
+        val notification = Notification.Builder(context, channel).run {
+            val titleResId = when {
+                !result.success -> R.string.notification_sync_failed_title
+                result.dryRun -> R.string.notification_sync_dry_run_succeeded_title
+                else -> R.string.notification_sync_succeeded_title
+            }
+            val text = buildString {
+                result.error?.trim()?.takeIf { it.isNotBlank() }?.let {
+                    append(it)
+                    append("\n\n")
+                }
+                append(result.describe(context))
+            }
+
+            setContentTitle(context.getString(titleResId, job.name))
+            setContentText(text)
+            style = Notification.BigTextStyle().bigText(text)
+            setSmallIcon(R.drawable.ic_notifications)
+            setContentIntent(createSyncJobsPendingIntent())
+            setAutoCancel(true)
+
+            build()
+        }
+
+        notificationManager.notify(notificationId, notification)
+    }
 
     fun notifyBackgroundUploadFailed(documentId: String, errorMsg: String) {
         val notificationId = prefs.nextNotificationId

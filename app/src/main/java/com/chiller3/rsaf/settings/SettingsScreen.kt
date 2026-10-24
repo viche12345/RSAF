@@ -249,6 +249,9 @@ fun SettingsScreen(
             onConfigurationExport = {
                 requestSafExportConfiguration.launch(RcloneConfig.FILENAME)
             },
+            onSyncJobsOpen = {
+                context.startActivity(SyncJobsActivity.createIntent(context))
+            },
             onAddFileExtensionChange = { enabled ->
                 prefs.addFileExtension = enabled
                 reloadPrefs++
@@ -358,6 +361,7 @@ private fun SettingsContent(
     onRemoteEdit: (String) -> Unit,
     onConfigurationImport: () -> Unit,
     onConfigurationExport: () -> Unit,
+    onSyncJobsOpen: () -> Unit,
     onAddFileExtensionChange: (Boolean) -> Unit,
     onPretendLocalChange: (Boolean) -> Unit,
     onLocalStorageAccessChange: (Boolean) -> Unit,
@@ -495,6 +499,24 @@ private fun SettingsContent(
                 shapes = BetterSegmentedShapes.bottom(),
                 title = { Text(text = stringResource(R.string.pref_export_configuration_name)) },
                 summary = { Text(text = stringResource(R.string.pref_export_configuration_desc)) },
+                modifier = Modifier.animateItem(),
+            )
+        }
+
+        item(key = "sync") {
+            PreferenceCategory(
+                title = { Text(text = stringResource(R.string.pref_header_sync)) },
+                modifier = Modifier.animateItem(),
+            )
+        }
+
+        item(key = "sync_jobs") {
+            Preference(
+                onClick = onSyncJobsOpen,
+                enabled = importExportState == null,
+                shapes = BetterSegmentedShapes.single(),
+                title = { Text(text = stringResource(R.string.pref_sync_jobs_name)) },
+                summary = { Text(text = stringResource(R.string.pref_sync_jobs_desc)) },
                 modifier = Modifier.animateItem(),
             )
         }
@@ -756,6 +778,7 @@ private fun PreviewSettingsScreen() {
                 onRemoteEdit = {},
                 onConfigurationImport = {},
                 onConfigurationExport = {},
+                onSyncJobsOpen = {},
                 onAddFileExtensionChange = {},
                 onPretendLocalChange = {},
                 onLocalStorageAccessChange = {},

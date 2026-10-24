@@ -66,6 +66,10 @@
             android:name=".settings.InteractiveConfigurationActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".settings.SyncJobsActivity"
+            android:exported="false" />
+
         <service
             android:name=".rclone.AuthorizeService"
             android:foregroundServiceType="specialUse"
@@ -75,6 +79,12 @@
             android:name=".rclone.KeepAliveService"
             android:foregroundServiceType="specialUse"
             android:exported="false" />
+
+        <!-- Sync jobs run in WorkManager's foreground service. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="specialUse"
+            tools:node="merge" />
 
         <receiver
             android:name=".rclone.ResumeUploadsBootReceiver"
