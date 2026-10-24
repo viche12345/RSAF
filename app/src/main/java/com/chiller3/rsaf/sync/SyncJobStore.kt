@@ -64,6 +64,10 @@ object SyncJobsSerializer : Serializer<List<SyncJob>> {
         source = json.getString("source"),
         destination = json.getString("destination"),
         mode = RcloneRpc.TransferMode.valueOf(json.getString("mode")),
+        // Added after the initial version, so these are optional.
+        deleteBefore = json.optBoolean("delete_before", false),
+        transfers = json.optInt("transfers", SyncJob.DEFAULT_TRANSFERS)
+            .coerceIn(SyncJob.MIN_TRANSFERS, SyncJob.MAX_TRANSFERS),
         lastResult = json.optJSONObject("last_result")?.let(::resultFromJson),
     )
 
@@ -73,6 +77,8 @@ object SyncJobsSerializer : Serializer<List<SyncJob>> {
         .put("source", job.source)
         .put("destination", job.destination)
         .put("mode", job.mode.name)
+        .put("delete_before", job.deleteBefore)
+        .put("transfers", job.transfers)
         .apply { job.lastResult?.let { put("last_result", resultToJson(it)) } }
 
     private fun resultFromJson(json: JSONObject) = SyncJobResult(

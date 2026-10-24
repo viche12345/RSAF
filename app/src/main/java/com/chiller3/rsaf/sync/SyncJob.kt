@@ -32,8 +32,22 @@ data class SyncJob(
     /** Destination remote name, without the trailing colon. */
     val destination: String,
     val mode: RcloneRpc.TransferMode,
+    /**
+     * Delete extra files on the destination before transferring instead of after. This frees up
+     * space first, but if the run fails, the destination may be missing files until the next run.
+     * Only applies to [RcloneRpc.TransferMode.SYNC].
+     */
+    val deleteBefore: Boolean = false,
+    /** Number of files to transfer in parallel. */
+    val transfers: Int = DEFAULT_TRANSFERS,
     val lastResult: SyncJobResult? = null,
-)
+) {
+    companion object {
+        const val DEFAULT_TRANSFERS = 1
+        const val MIN_TRANSFERS = 1
+        const val MAX_TRANSFERS = 8
+    }
+}
 
 /** Human-readable summary of a finished run, like "Transferred: 3 (1.2 MB) · Deleted: 1". */
 fun SyncJobResult.describe(context: Context): String {

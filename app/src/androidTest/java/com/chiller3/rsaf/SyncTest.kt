@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.chiller3.rsaf.binding.rcbridge.Rcbridge
 import com.chiller3.rsaf.rclone.RcloneRpc
 import com.chiller3.rsaf.rclone.RcloneRpcException
 import com.chiller3.rsaf.rclone.VfsCache
@@ -22,8 +23,10 @@ import com.chiller3.rsaf.sync.SyncJobsSerializer
 import com.chiller3.rsaf.sync.SyncProgress
 import com.chiller3.rsaf.sync.SyncWorker
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -106,10 +109,14 @@ class SyncTest {
         srcDir.parentFile!!.deleteRecursively()
     }
 
-    private fun transfer(mode: RcloneRpc.TransferMode, dryRun: Boolean = false): RcloneRpc.TransferStats {
+    private fun transfer(
+        mode: RcloneRpc.TransferMode,
+        dryRun: Boolean = false,
+        deleteBefore: Boolean = false,
+    ): RcloneRpc.TransferStats {
         val group = "rsaf-sync-test/" + RandomUtils.generatePassword(8, RandomUtils.ASCII_ALPHANUMERIC)
 
-        RcloneRpc.runTransfer(mode, "$srcRemote:", "$dstRemote:", dryRun, group)
+        RcloneRpc.runTransfer(mode, "$srcRemote:", "$dstRemote:", dryRun, group, deleteBefore, 1)
 
         return RcloneRpc.coreStats(group).also {
             RcloneRpc.deleteStatsGroup(group)
@@ -155,6 +162,55 @@ class SyncTest {
         assertEquals(setOf("extra.txt"), dstDir.relativeFiles())
         assertEquals(setOf("a.txt", "sub/b.txt"), srcDir.relativeFiles())
         assertEquals(0L, stats.errors)
+    }
+
+    /** Make sure rclone recognizes the `_config` keys that [RcloneRpc.runTransfer] sends. */
+    @Test
+    fun configKeysApplied() {
+        val input = JSONObject().put("_config", JSONObject()
+            .put("DryRun", true)
+            .put("DeleteMode", 1)
+            .put("Transfers", 3))
+        val result = Rcbridge.rbRpcCall("options/local", input.toString())
+        assertEquals(result.output, 200L, result.status)
+
+        val config = JSONObject(result.output).getJSONObject("config")
+        assertEquals(result.output, true, config.getBoolean("DryRun"))
+        // fs.DeleteModeBefore
+        assertEquals(result.output, 1, config.getInt("DeleteMode"))
+        assertEquals(result.output, 3, config.getInt("Transfers"))
+    }
+
+    private fun makeUnreadableSourceFile() {
+        File(srcDir, "unreadable.txt").apply {
+            writeText("secret")
+            assertTrue(setReadable(false, false))
+        }
+    }
+
+    @Test
+    fun syncDeleteAfterKeepsFilesOnError() {
+        makeUnreadableSourceFile()
+
+        assertThrows(RcloneRpcException::class.java) {
+            transfer(RcloneRpc.TransferMode.SYNC)
+        }
+
+        // rclone skips deletions after a failed transfer by default.
+        assertTrue(File(dstDir, "extra.txt").exists())
+    }
+
+    @Test
+    fun syncDeleteBeforeDeletesFirst() {
+        makeUnreadableSourceFile()
+
+        assertThrows(RcloneRpcException::class.java) {
+            transfer(RcloneRpc.TransferMode.SYNC, deleteBefore = true)
+        }
+
+        // The deletion happened before the failing transfer.
+        assertFalse(File(dstDir, "extra.txt").exists())
+        assertTrue(File(dstDir, "a.txt").exists())
     }
 
     @Test
@@ -233,11 +289,16 @@ class SyncTest {
             SyncJob("1", "Job 1", "a", "b", RcloneRpc.TransferMode.SYNC),
             SyncJob(
                 "2", "Job → 2", "c", "d", RcloneRpc.TransferMode.MOVE,
-                SyncJobResult(1234, false, true, false, "some error", 5, 6, 7, 8),
+                lastResult = SyncJobResult(1234, false, true, false, "some error", 5, 6, 7, 8),
+            ),
+            SyncJob(
+                "4", "Job 4", "g", "h", RcloneRpc.TransferMode.SYNC,
+                deleteBefore = true,
+                transfers = 3,
             ),
             SyncJob(
                 "3", "Job 3", "e", "f", RcloneRpc.TransferMode.COPY,
-                SyncJobResult(5678, true, false, true, null, 0, 0, 0, 0),
+                lastResult = SyncJobResult(5678, true, false, true, null, 0, 0, 0, 0),
             ),
         )
 
@@ -246,6 +307,20 @@ class SyncTest {
 
         val decoded = SyncJobsSerializer.readFrom(ByteArrayInputStream(output.toByteArray()))
         assertEquals(jobs, decoded)
+    }
+
+    /** Jobs saved before [SyncJob.deleteBefore] and [SyncJob.transfers] existed. */
+    @Test
+    fun serializerMissingOptionalFields() = runBlocking {
+        val input = """{"version": 1, "jobs": [{"id": "1", "name": "n", "source": "a", "destination": "b", "mode": "SYNC"}]}"""
+        val decoded = SyncJobsSerializer.readFrom(ByteArrayInputStream(input.toByteArray()))
+
+        assertEquals(
+            listOf(SyncJob("1", "n", "a", "b", RcloneRpc.TransferMode.SYNC)),
+            decoded,
+        )
+        assertFalse(decoded[0].deleteBefore)
+        assertEquals(SyncJob.DEFAULT_TRANSFERS, decoded[0].transfers)
     }
 
     @Test

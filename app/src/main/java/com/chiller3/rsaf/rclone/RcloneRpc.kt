@@ -678,11 +678,18 @@ object RcloneRpc {
         MOVE("sync/move"),
     }
 
+    /** Value of rclone's `fs.DeleteModeBefore`. */
+    private const val DELETE_MODE_BEFORE = 1
+
     /**
      * Run a sync, copy, or move between two filesystems. This blocks until the operation completes.
      *
      * All stats are accounted to [group], which can be used to query progress with [coreStats] or
      * cancel the operation with [jobStopGroup] from another thread.
+     *
+     * @param deleteBefore Delete extra files on the destination before transferring. Only applies
+     * to [TransferMode.SYNC].
+     * @param transfers Number of files to transfer in parallel.
      */
     fun runTransfer(
         mode: TransferMode,
@@ -690,15 +697,25 @@ object RcloneRpc {
         dstFs: String,
         dryRun: Boolean,
         group: String,
+        deleteBefore: Boolean = false,
+        transfers: Int? = null,
     ) {
+        val config = JSONObject()
+        if (dryRun) {
+            config.put("DryRun", true)
+        }
+        if (deleteBefore && mode == TransferMode.SYNC) {
+            config.put("DeleteMode", DELETE_MODE_BEFORE)
+        }
+        if (transfers != null) {
+            config.put("Transfers", transfers)
+        }
+
         val input = JSONObject()
             .put("srcFs", srcFs)
             .put("dstFs", dstFs)
             .put("_group", group)
-
-        if (dryRun) {
-            input.put("_config", JSONObject().put("DryRun", true))
-        }
+            .put("_config", config)
 
         invoke(mode.method, input)
     }

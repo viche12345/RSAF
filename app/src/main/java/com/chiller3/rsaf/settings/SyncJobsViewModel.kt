@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.UUID
 
 data class SyncJobState(
     val job: SyncJob,
@@ -114,20 +113,14 @@ class SyncJobsViewModel(application: Application) : AndroidViewModel(application
         _alerts.update { it + alert }
     }
 
-    /** Add a new job if [id] is null. Otherwise, update the existing job. */
-    fun saveJob(
-        id: String?,
-        name: String,
-        source: String,
-        destination: String,
-        mode: RcloneRpc.TransferMode,
-    ) {
+    /** Add [job] if [isNew]. Otherwise, update the existing job's definition. */
+    fun saveJob(job: SyncJob, isNew: Boolean) {
         viewModelScope.launch {
             try {
-                if (id == null) {
-                    store.add(SyncJob(UUID.randomUUID().toString(), name, source, destination, mode))
+                if (isNew) {
+                    store.add(job)
                 } else {
-                    store.update(SyncJob(id, name, source, destination, mode))
+                    store.update(job)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to save sync job", e)

@@ -208,6 +208,8 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                     dstFs = "${job.destination}:",
                     dryRun = dryRun,
                     group = group,
+                    deleteBefore = job.deleteBefore,
+                    transfers = job.transfers,
                 )
             }
         }

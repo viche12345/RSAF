@@ -200,6 +200,13 @@
     <string name="dialog_sync_job_destination_hint">Destination remote</string>
     <string name="dialog_sync_job_same_remote">The source and destination must be different remotes.</string>
     <string name="dialog_sync_job_mode">Mode</string>
+    <string name="dialog_sync_job_delete_before">Delete before transferring</string>
+    <string name="dialog_sync_job_delete_before_desc">Free up space on the destination by deleting extra files first. If a run fails, the destination may be missing files until the next run.</string>
+    <string name="dialog_sync_job_transfers_desc">More parallel transfers can be faster, especially for many small files, but use more memory and battery. Fewer is better for slow storage like SD cards and for avoiding cloud provider rate limits.</string>
+    <plurals name="dialog_sync_job_transfers">
+        <item quantity="one">%1$d transfer at a time</item>
+        <item quantity="other">%1$d transfers at a time</item>
+    </plurals>
     <string name="dialog_delete_sync_job_title">Delete sync job?</string>
     <string name="dialog_delete_sync_job_message">The sync job %1$s will be deleted. Files on the remotes are not affected.</string>
     <string name="dialog_action_save">Save</string>

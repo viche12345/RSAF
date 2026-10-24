@@ -177,8 +177,8 @@ fun SyncJobsScreen(
         SyncJobEditDialog(
             initial = initial,
             remotes = remotes ?: emptyList(),
-            onSave = { name, source, destination, mode ->
-                viewModel.saveJob(initial?.id, name, source, destination, mode)
+            onSave = { job ->
+                viewModel.saveJob(job, isNew = initial == null)
                 showEditDialog = null
             },
             onDismiss = { showEditDialog = null },
@@ -382,7 +382,7 @@ private fun PreviewSyncJobsScreen() {
                     SyncJobState(
                         job = SyncJob("2", "Documents", "gdrive", "nas",
                             RcloneRpc.TransferMode.COPY,
-                            SyncJobResult(now - 7_200_000, true, false, false, null,
+                            lastResult = SyncJobResult(now - 7_200_000, true, false, false, null,
                                 1_200_000, 3, 0, 0)),
                         missingRemotes = emptyList(),
                         isActive = false,
