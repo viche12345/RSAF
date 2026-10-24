@@ -39,6 +39,7 @@ fun AppScreen(
     onBack: (() -> Unit)? = null,
     backIsExit: Boolean = false,
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets,
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (AppScreenParams) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -79,6 +80,7 @@ fun AppScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
+        floatingActionButton = floatingActionButton,
         containerColor = PreferenceDefaults.containerColor,
         contentWindowInsets = contentWindowInsets,
     ) { contentPadding ->

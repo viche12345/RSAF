@@ -107,6 +107,18 @@ object VfsCache {
     fun hasOngoingUploads(remote: String?): Boolean =
         syncUploadProgress(remote).uploading > 0 || asyncUploadProgress(remote).total > 0
 
+    /** Drop the directory caches for [remote] after it was modified outside of the VFS. */
+    fun forgetDirCache(remote: String) {
+        val vfses = RcloneRpc.vfses.asSequence().filter { remote == normalizeRemote(it) }
+        for (vfs in vfses) {
+            try {
+                RcloneRpc.vfsForget(vfs)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to forget directory cache for $vfs", e)
+            }
+        }
+    }
+
     /** Get complete VFS options, falling back to default values when not overridden. */
     fun getVfsOptions(overrides: Map<String, String>): Map<String, String> {
         val overridesList = RbVfsOptList()

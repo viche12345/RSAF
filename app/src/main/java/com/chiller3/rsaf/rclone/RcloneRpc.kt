@@ -10,6 +10,16 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 
+class RcloneRpcException(val method: String, val status: Long, val error: String?) : IOException(
+    buildString {
+        append("$method call failed with status $status")
+        if (error != null) {
+            append(": ")
+            append(error)
+        }
+    }
+)
+
 object RcloneRpc {
     private const val CUSTOM_OPT_PREFIX = "rsaf:"
     // This is called hidden due to backwards compatibility.
@@ -39,7 +49,7 @@ object RcloneRpc {
     /**
      * Perform an rclone RPC call.
      *
-     * @throws IOException if the RPC call does not return a 200 status
+     * @throws RcloneRpcException if the RPC call does not return a 200 status
      */
     private fun invoke(method: String, input: JSONObject, notifyBackup: Boolean = true): JSONObject {
         val result = Rcbridge.rbRpcCall(method, input.toString())
@@ -52,7 +62,13 @@ object RcloneRpc {
         }
 
         if (result.status != 200L) {
-            throw IOException("$method call failed with status ${result.status}")
+            val error = try {
+                JSONObject(result.output).optString("error")
+            } catch (_: Exception) {
+                null
+            }
+
+            throw RcloneRpcException(method, result.status, error?.takeIf { it.isNotEmpty() })
         }
 
         return JSONObject(result.output)
@@ -650,6 +666,88 @@ object RcloneRpc {
         }
 
         return VfsQueueStats(inProgress, pending)
+    }
+
+    fun vfsForget(vfs: String) {
+        invoke("vfs/forget", JSONObject().put("fs", vfs))
+    }
+
+    enum class TransferMode(val method: String) {
+        SYNC("sync/sync"),
+        COPY("sync/copy"),
+        MOVE("sync/move"),
+    }
+
+    /**
+     * Run a sync, copy, or move between two filesystems. This blocks until the operation completes.
+     *
+     * All stats are accounted to [group], which can be used to query progress with [coreStats] or
+     * cancel the operation with [jobStopGroup] from another thread.
+     */
+    fun runTransfer(
+        mode: TransferMode,
+        srcFs: String,
+        dstFs: String,
+        dryRun: Boolean,
+        group: String,
+    ) {
+        val input = JSONObject()
+            .put("srcFs", srcFs)
+            .put("dstFs", dstFs)
+            .put("_group", group)
+
+        if (dryRun) {
+            input.put("_config", JSONObject().put("DryRun", true))
+        }
+
+        invoke(mode.method, input)
+    }
+
+    data class TransferStats(
+        val bytes: Long,
+        val totalBytes: Long,
+        val transfers: Long,
+        val totalTransfers: Long,
+        val checks: Long,
+        val totalChecks: Long,
+        val deletes: Long,
+        val renames: Long,
+        val errors: Long,
+        val speed: Double,
+        val eta: Long?,
+        val lastError: String?,
+    ) {
+        companion object {
+            val EMPTY = TransferStats(0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, null, null)
+        }
+    }
+
+    fun coreStats(group: String): TransferStats {
+        val output = invoke("core/stats", JSONObject().put("group", group).put("short", true))
+
+        return TransferStats(
+            bytes = output.optLong("bytes"),
+            totalBytes = output.optLong("totalBytes"),
+            transfers = output.optLong("transfers"),
+            totalTransfers = output.optLong("totalTransfers"),
+            checks = output.optLong("checks"),
+            totalChecks = output.optLong("totalChecks"),
+            deletes = output.optLong("deletes"),
+            renames = output.optLong("renames"),
+            errors = output.optLong("errors"),
+            speed = output.optDouble("speed", 0.0).takeIf { !it.isNaN() } ?: 0.0,
+            eta = if (output.isNull("eta")) null else output.optLong("eta"),
+            lastError = output.optString("lastError").takeIf { it.isNotEmpty() },
+        )
+    }
+
+    /** Cancel all jobs accounted to [group]. */
+    fun jobStopGroup(group: String) {
+        invoke("job/stopgroup", JSONObject().put("group", group))
+    }
+
+    fun deleteStatsGroup(group: String) {
+        invoke("core/stats-delete", JSONObject().put("group", group))
     }
 
     fun authorizeUrl(): String? {
