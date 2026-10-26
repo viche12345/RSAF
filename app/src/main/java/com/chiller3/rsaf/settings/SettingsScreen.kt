@@ -241,6 +241,9 @@ fun SettingsScreen(
             onRemoteEdit = { name ->
                 requestEditRemote.launch(EditRemoteActivity.createIntent(context, name))
             },
+            onSyncJobsOpen = {
+                context.startActivity(Intent(context, SyncJobsActivity::class.java))
+            },
             onConfigurationImport = {
                 // We intentionally do not filter for specific MIME types because document providers
                 // are inconsistent in what MIME types they report for .conf files.
@@ -356,6 +359,7 @@ private fun SettingsContent(
     onLocalNetworkGrant: () -> Unit,
     onRemoteAdd: (String) -> Unit,
     onRemoteEdit: (String) -> Unit,
+    onSyncJobsOpen: () -> Unit,
     onConfigurationImport: () -> Unit,
     onConfigurationExport: () -> Unit,
     onAddFileExtensionChange: (Boolean) -> Unit,
@@ -460,6 +464,24 @@ private fun SettingsContent(
                 shapes = betterSegmentedShapes(index = index + 1, count = remotes.size + 1),
                 title = { Text(text = remote.name) },
                 summary = { Text(text = remote.provider.description) },
+                modifier = Modifier.animateItem(),
+            )
+        }
+
+        item(key = "sync") {
+            PreferenceCategory(
+                title = { Text(text = stringResource(R.string.pref_header_sync)) },
+                modifier = Modifier.animateItem(),
+            )
+        }
+
+        item(key = "sync_jobs") {
+            Preference(
+                onClick = onSyncJobsOpen,
+                enabled = importExportState == null,
+                shapes = BetterSegmentedShapes.single(),
+                title = { Text(text = stringResource(R.string.pref_sync_jobs_name)) },
+                summary = { Text(text = stringResource(R.string.pref_sync_jobs_desc)) },
                 modifier = Modifier.animateItem(),
             )
         }
@@ -754,6 +776,7 @@ private fun PreviewSettingsScreen() {
                 onLocalNetworkGrant = {},
                 onRemoteAdd = {},
                 onRemoteEdit = {},
+                onSyncJobsOpen = {},
                 onConfigurationImport = {},
                 onConfigurationExport = {},
                 onAddFileExtensionChange = {},

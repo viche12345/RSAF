@@ -39,6 +39,7 @@ fun AppScreen(
     onBack: (() -> Unit)? = null,
     backIsExit: Boolean = false,
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets,
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (AppScreenParams) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -47,6 +48,7 @@ fun AppScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        floatingActionButton = floatingActionButton,
         topBar = {
             TopAppBar(
                 title = title,
