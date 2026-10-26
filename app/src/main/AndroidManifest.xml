@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
         tools:ignore="ForegroundServicesPolicy" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        android:minSdkVersion="34" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
         android:minSdkVersion="34" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -66,6 +68,10 @@
             android:name=".settings.InteractiveConfigurationActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".settings.SyncJobsActivity"
+            android:exported="false" />
+
         <service
             android:name=".rclone.AuthorizeService"
             android:foregroundServiceType="specialUse"
@@ -75,6 +81,11 @@
             android:name=".rclone.KeepAliveService"
             android:foregroundServiceType="specialUse"
             android:exported="false" />
+
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
 
         <receiver
             android:name=".rclone.ResumeUploadsBootReceiver"

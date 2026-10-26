@@ -665,4 +665,55 @@ object RcloneRpc {
     fun authorizeCancel() {
         invoke("config/oauthstop", JSONObject())
     }
+
+    /**
+     * Start an async `sync/sync` or `sync/copy` job from the root of [source] to the root of
+     * [dest]. Transfer stats are recorded under [group].
+     *
+     * @return The rclone job ID
+     */
+    fun startSyncJob(source: String, dest: String, copy: Boolean, group: String): Long {
+        val output = invoke(if (copy) "sync/copy" else "sync/sync", JSONObject()
+            .put("srcFs", "$source:")
+            .put("dstFs", "$dest:")
+            .put("_async", true)
+            .put("_group", group))
+
+        return output.getLong("jobid")
+    }
+
+    data class JobStatus(
+        val finished: Boolean,
+        val success: Boolean,
+        val error: String,
+    )
+
+    fun jobStatus(jobId: Long): JobStatus {
+        val output = invoke("job/status", JSONObject().put("jobid", jobId))
+
+        return JobStatus(
+            output.getBoolean("finished"),
+            output.getBoolean("success"),
+            output.optString("error"),
+        )
+    }
+
+    fun stopJob(jobId: Long) {
+        invoke("job/stop", JSONObject().put("jobid", jobId))
+    }
+
+    data class TransferStats(
+        val bytes: Long,
+        val totalBytes: Long,
+    )
+
+    fun groupStats(group: String): TransferStats {
+        val output = invoke("core/stats", JSONObject().put("group", group))
+
+        return TransferStats(output.optLong("bytes"), output.optLong("totalBytes"))
+    }
+
+    fun deleteGroupStats(group: String) {
+        invoke("core/stats-delete", JSONObject().put("group", group))
+    }
 }

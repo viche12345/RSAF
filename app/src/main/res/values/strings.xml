@@ -7,6 +7,7 @@
     <string name="pref_header_permissions">Permissions</string>
     <string name="pref_header_remotes">Remotes</string>
     <string name="pref_header_remote">Remote</string>
+    <string name="pref_header_sync">Sync</string>
     <string name="pref_header_configuration">Configuration</string>
     <string name="pref_header_behavior">Behavior</string>
     <string name="pref_header_app_lock">App lock</string>
@@ -23,6 +24,8 @@
     <string name="pref_allow_local_network_desc">Needed to connect to hosts on the local network.</string>
     <string name="pref_add_remote_name">Add a remote</string>
     <string name="pref_add_remote_desc">Add a new rclone remote configuration.</string>
+    <string name="pref_sync_jobs_name">Sync jobs</string>
+    <string name="pref_sync_jobs_desc">Sync or copy files between remotes.</string>
     <string name="pref_import_configuration_name">Import configuration</string>
     <string name="pref_import_configuration_desc">Import an existing rclone configuration file.</string>
     <string name="pref_export_configuration_name">Export configuration</string>
@@ -155,6 +158,8 @@
     <string name="notification_channel_keep_alive_desc">Keeps process alive while files are open or being uploaded</string>
     <string name="notification_channel_failure_name">Failure alerts</string>
     <string name="notification_channel_failure_desc">Alerts for errors during background uploads</string>
+    <string name="notification_channel_sync_jobs_name">Sync jobs</string>
+    <string name="notification_channel_sync_jobs_desc">Shows progress of running sync jobs</string>
     <string name="notification_keep_alive_title">File operations in progress</string>
     <plurals name="notification_keep_alive_files_open_desc">
         <item quantity="one">%d file open</item>
@@ -170,4 +175,31 @@
     </plurals>
     <string name="notification_keep_alive_cleanup_wait_desc">Waiting for VFS cache cleanup</string>
     <string name="notification_background_upload_failed_title">Failed to upload file to remote</string>
+    <string name="notification_sync_job_title">Sync job running</string>
+    <string name="notification_sync_job_failed_title">Sync job failed</string>
+
+    <!-- Sync jobs -->
+    <string name="sync_jobs_title">Sync jobs</string>
+    <string name="sync_jobs_empty">No sync jobs yet.</string>
+    <string name="sync_jobs_add">Add job</string>
+    <string name="sync_job_name">%1$s: → %2$s:</string>
+    <string name="sync_job_summary">%1$s · %2$s</string>
+    <string name="sync_job_mode_sync">Sync</string>
+    <string name="sync_job_mode_copy">Copy</string>
+    <string name="sync_job_status_idle">Idle</string>
+    <string name="sync_job_status_queued">Queued</string>
+    <string name="sync_job_status_running">Running</string>
+    <string name="sync_job_status_running_progress">Running: %1$s of %2$s</string>
+    <string name="sync_job_status_succeeded">Last run succeeded</string>
+    <string name="sync_job_status_failed">Last run failed: %1$s</string>
+    <string name="sync_job_status_cancelled">Last run cancelled</string>
+    <string name="sync_job_action_run">Run</string>
+    <string name="sync_job_action_stop">Stop</string>
+    <string name="sync_job_action_delete">Delete</string>
+    <string name="sync_job_action_close">Close</string>
+    <string name="dialog_add_sync_job_title">Add sync job</string>
+    <string name="dialog_add_sync_job_source">Source</string>
+    <string name="dialog_add_sync_job_dest">Destination</string>
+    <string name="dialog_add_sync_job_sync_warning">Files in the destination that are not in the source will be deleted.</string>
+    <string name="dialog_add_sync_job_copy_desc">Files are copied to the destination. Nothing is deleted.</string>
 </resources>
